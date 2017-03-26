@@ -3,6 +3,24 @@
 import argparse
 
 
+def task_overlap(task1, task2):
+    begin_1, end_1 = task1
+    begin_2, end_2 = task2
+    overlap = max(0, min(int(end_1), int(end_2)) - max(int(begin_1), int(begin_2)))
+    return overlap > 0
+
+
+def is_feasible(schedule):
+    for i in range(0, len(schedule)):
+        for j in range(i+1, len(schedule)):
+            if i == j:
+                continue  # Skips to next j
+            if task_overlap(schedule[i], schedule[j]):
+                return False
+
+    return True
+
+
 def greedy_scheduler(tasks):
     if not tasks:  # An empty string or list has false value
         print('Nenhuma atividade foi informada')
@@ -19,7 +37,25 @@ def greedy_scheduler(tasks):
 
 
 def dynamic_scheduler(tasks):
+    if not tasks:
+        return 0
+
+    tasks.sort(key=lambda task: task[1])
+    n = len(tasks)
+    prev = [0 for i in range(n)]
+    last_task = 0
+    for i in range(0, n):
+        for j in range(0, i):
+            if not task_overlap(tasks[i], tasks[j]):
+                prev[i] = j
+                last_task = i
+
     schedule = []
+    prev_task = last_task
+    while prev_task > 0:
+        schedule.insert(0, tasks[prev_task])
+        prev_task = prev[prev_task]
+
     return schedule
 
 
