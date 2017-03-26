@@ -28,29 +28,44 @@ def find_solution(j, q, opt,activities):
     return selected
   else:
     return find_solution( j - 1,q,opt,activities)
-    
-def dynamic_selection(activities):
-  activities.sort(key=operator.itemgetter(1))
-  opt = [-1] * (len(activities)-1)
-  opt[0] = 0
+def compute_q(activities):
+  #Maior indice dos elementos compatíveis com a tarefa i
   q = []
   for activity in activities:
     compatible_activities = [x for x in activities if x[1] <= activity[0] ]
     if not compatible_activities:
-      q.append(-1)
+      q.append(-1) #Deve ser a primeira a para estar na seleção
     else:
       qj = max(compatible_activities,key=lambda x: activities.index(x) )
       qj = activities.index(qj)
       q.append(qj)
+  return q
+def dynamic_selection(activities):
+  activities.sort(key=operator.itemgetter(1))
+  opt = [-1] * (len(activities)-1)
+  opt[0] = 0
+  #Maior indice dos elementos compatíveis com a tarefa i
+  q = compute_q(activities)
   for i in range(1, len(activities)-1):
     opt[i] = max(opt[i-1], opt[ q[i] ] + 1)
   selected_activities = find_solution(len(activities)-1, q, opt,activities)
   return selected_activities
 
+def recursive_compute(j,activities,q):
+  if (j==-1):
+    return [];
+  add_activity = recursive_compute(q[j],activities,q)
+  no_add_activity = recursive_compute(j-1,activities,q)
+  if len(add_activity) >= len(no_add_activity):
+    add_activity.append(activities[j])
+    return add_activity
+  return no_add_activity
 
 def backtracking_selection(activities):
-    schedule = []
-    return schedule
+  activities.sort(key=lambda x: x[1])
+  q = compute_q(activities)
+  selected_activities = recursive_compute(len(activities)-1,activities,q)
+  return selected_activities
 
 
 def main():
