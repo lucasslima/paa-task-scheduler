@@ -3,7 +3,9 @@
 import argparse
 import operator
 import traceback
-
+import matplotlib.pyplot as plt
+import time
+import os
 
 def greedy_selection(activities):
     if not activities:  # An empty string or list has false value
@@ -48,10 +50,8 @@ def dynamic_selection(activities):
   opt[-1] = 0
   #Maior indice dos elementos compatíveis com a tarefa i
   q = compute_q(activities)
-  print (q)
   for i in range(0, len(activities)):
     opt[i] = max( opt[ q[i] ] + 1,opt[i-1])
-  print (opt)
   selected_activities = find_solution(len(activities)-1, q, opt,activities)
   return selected_activities
 
@@ -74,38 +74,61 @@ def backtracking_selection(activities):
 
 def main():
     parser = argparse.ArgumentParser(prog='paa-activity-selection', description='Parses a input file with activities')
-    parser.add_argument('--inputfile', type=str, nargs='?', default='input.txt', metavar='I',
-                        help='location of input file to be parsed (default: input.txt)')
+    parser.add_argument('--inputdir', type=str, nargs='?', default='inputs', metavar='I',
+                        help='location of input file to be parsed (default: inputs)')
     parser.add_argument('--method', type=str, nargs='?', default='greedy', metavar='M',
                         help='algorithm to be used to schedule activities (options: greedy, dynamic, backtracking)')
     args = parser.parse_args()
     print('Argumentos recebidos: ')
     print(args)
-    inputfile = args.inputfile
-    method = args.method
+    sizes = [10, 20, 30 , 40 ,50, 60, 70, 80, 90,100]
+    times = []
+    for size in sizes:
+      itimes = []
+      for i in range(0,10):
+        inputfile = os.path.join(args.inputdir, 'input_{}_{}.txt'.format(size,i) )
+        print(inputfile)
+        method = args.method
 
-    with open(inputfile) as f:
-        activities = [tuple([int(activity.split()[0]), int(activity.split()[1])]) for activity in f.read().splitlines()]
-        #  print(activities) tarefas
-        #  print(activities[0]) primeira tarefa
-        #  print(activities[0][0]) inicio da primeira tarefa
-        #  print(activities[0][1]) fim da primeira tarefa
+        with open(inputfile) as f:
+            activities = [tuple([int(activity.split()[0]), int(activity.split()[1])]) for activity in f.read().splitlines()]
+            #  print(activities) tarefas
+            #  print(activities[0]) primeira tarefa
+            #  print(activities[0][0]) inicio da primeira tarefa
+            #  print(activities[0][1]) fim da primeira tarefa
 
-    if method == 'backtracking':
-        schedule = backtracking_selection(activities)
-        method += ' ()'
-    elif method == 'dynamic':
-        schedule = dynamic_selection(activities)
-        method += ' (dinâmico)'
-    else:
-        schedule = greedy_selection(activities)
-        method += ' (guloso)'
+        if method == 'backtracking':
+          start_time = time.time()
+          schedule = backtracking_selection(activities)
+          itimes.append(time.time() - start_time)
+          method += ' ()'
+        elif method == 'dynamic':
+          start_time = time.time()
+          schedule = dynamic_selection(activities)
+          itimes.append(time.time() - start_time)
+          method += ' (dinâmico)'
+        else:
+          start_time = time.time()
+          schedule = greedy_selection(activities)
+          itimes.append(time.time() - start_time)
+          method += ' (guloso)'
 
-    print('{} tarefas foram escalonadas seguindo o método {}'.format(len(schedule), method))
-    print(schedule)
-    for index, activity in enumerate(schedule):
-        print('Tarefa {} início: {} fim: {}'.format(index, activity[0], activity[1]))
+        print('{} tarefas foram escalonadas seguindo o método {}'.format(len(schedule), method))
+        print(schedule)
+        for index, activity in enumerate(schedule):
+            print('Tarefa {} início: {} fim: {}'.format(index, activity[0], activity[1]))
+      times.append(sum(itimes)/len(itimes))
+      
+      #plot it
+    plt.plot(sizes, times)
+    plt.xlim(sizes[0], sizes[-1])
+    plt.title(args.method )
+    plt.ylabel('Tempo em segundos')
+    plt.xlabel('Tamanho')
 
+    plt.savefig('{}.png'.format(args.method), dpi=200)
 
+    plt.close()
+    
 if __name__ == "__main__":
     main()
