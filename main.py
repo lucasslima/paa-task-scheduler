@@ -21,13 +21,14 @@ def greedy_selection(activities):
 
 def find_solution(j, q, opt,activities):
   if j==-1:
-    return list(); 
+    return []; 
   if (1 + opt[q[j]] > opt[j-1]):
     selected = find_solution(q[j],q,opt,activities)
     selected.append(activities[j])
     return selected
   else:
     return find_solution( j - 1,q,opt,activities)
+  
 def compute_q(activities):
   #Maior indice dos elementos compatíveis com a tarefa i
   q = []
@@ -40,14 +41,17 @@ def compute_q(activities):
       qj = activities.index(qj)
       q.append(qj)
   return q
+
 def dynamic_selection(activities):
   activities.sort(key=operator.itemgetter(1))
-  opt = [-1] * (len(activities)-1)
-  opt[0] = 0
+  opt = [-1] * (len(activities)+1)
+  opt[-1] = 0
   #Maior indice dos elementos compatíveis com a tarefa i
   q = compute_q(activities)
-  for i in range(1, len(activities)-1):
-    opt[i] = max(opt[i-1], opt[ q[i] ] + 1)
+  print (q)
+  for i in range(0, len(activities)):
+    opt[i] = max( opt[ q[i] ] + 1,opt[i-1])
+  print (opt)
   selected_activities = find_solution(len(activities)-1, q, opt,activities)
   return selected_activities
 
@@ -81,7 +85,7 @@ def main():
     method = args.method
 
     with open(inputfile) as f:
-        activities = [activity.split() for activity in f.read().splitlines()]
+        activities = [tuple([int(activity.split()[0]), int(activity.split()[1])]) for activity in f.read().splitlines()]
         #  print(activities) tarefas
         #  print(activities[0]) primeira tarefa
         #  print(activities[0][0]) inicio da primeira tarefa
